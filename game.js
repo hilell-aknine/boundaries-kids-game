@@ -5,7 +5,23 @@
 // ═══════════════════════════════════════
 const SUPABASE_URL = '';
 const SUPABASE_ANON_KEY = '';
-const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const _supabase = (SUPABASE_URL && window.supabase)
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    : {
+        auth: {
+            onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+            getSession: async () => ({ data: { session: null } }),
+            signInWithPassword: async () => ({ error: { message: 'No Supabase configured' } }),
+            signUp: async () => ({ error: { message: 'No Supabase configured' } }),
+            signInWithOAuth: async () => ({ error: { message: 'No Supabase configured' } }),
+            signOut: async () => {}
+        },
+        from: () => ({
+            select: () => ({ eq: () => ({ single: async () => ({ data: null, error: true }) }) }),
+            upsert: async () => ({}),
+            update: () => ({ eq: async () => ({}) })
+        })
+    };
 
 const HEART_RECOVERY_MINUTES = 20;
 
